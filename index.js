@@ -110,6 +110,7 @@ app.post("/Login", async (req, res) => {
     }
     catch (error) {
         console.error("Login error:", error);
+        console.error("Login error:", error);
         return res.render("Login", { error: "Something went wrong" });
     }
 })
