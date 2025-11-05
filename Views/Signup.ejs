@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Sign Up</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8f8f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        form {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #ccc;
+            width: 350px;
+        }
+
+        input,
+        button {
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .error {
+            color: red;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <form id="signupForm" action="/signup" method="POST">
+        <h2>Signup</h2>
+
+        <% if (typeof error !=='undefined' && error) { %>
+            <div class="error">
+                <%= error %>
+            </div>
+            <% } %>
+
+                <input type="text" name="Name" placeholder="Full Name" required />
+                <input type="email" name="Email" placeholder="Email" required />
+                <input type="password" name="Password" placeholder="Password" required />
+
+                <button type="submit">Register</button>
+                <p>Already have an account? <a href="/Login">Login</a></p>
+    </form>
+
+    <script>
+        (function () {
+            const form = document.getElementById('signupForm');
+            if (!form) return;
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const body = new URLSearchParams(new FormData(form));
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else {
+                    document.querySelector('.error')?.remove();
+                    const text = await response.text();
+                    console.log(text);
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>
