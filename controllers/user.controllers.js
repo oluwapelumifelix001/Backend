@@ -1,5 +1,6 @@
 import User from '../models/user.models.js';
-import { transporter } from '../index.js'; 
+import { transporter } from '../index.js';
+import jwt from 'jsonwebtoken';
 
 
 export const PostSignup = async (req, res) => {
@@ -39,6 +40,8 @@ export const PostSignup = async (req, res) => {
       await transporter.sendMail(mailOptions);
     }
 
+
+
     req.session.userId = newUser._id;
     res.status(201).json({ message: "Signup successful!", user: { name: newUser.name, email: newUser.email } });
 
@@ -56,18 +59,20 @@ export const PostLogin = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Invalid Email or Password" });
-
     const isMatch = await user.comparePassword(Password);
     if (!isMatch) return res.status(400).json({ message: "Invalid Email or Password" });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    console.log(token);
+
 
     req.session.userId = user._id;
-    res.status(200).json({ message: "Login successful", user: { name: user.name, email: user.email } });
+    res.status(200).json({ message: "Login successful",token, user: { name: user.name, email: user.email } });
 
   } catch (error) {
-      console.error("Login error:", error);
-      res.status(500).json({ message: "Something went wrong, please try again." });
-    }
-  };
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Something went wrong, please try again." });
+  }
+};
 
 export const getDashboard = async (req, res) => {
   if (!req.session.userId) {
