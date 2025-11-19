@@ -1,7 +1,7 @@
 import User from '../models/user.models.js';
-import { transporter } from '../index.js'; // use transporter from index.js
+import { transporter } from '../index.js'; 
 
-// ==================== SIGNUP ====================
+
 export const PostSignup = async (req, res) => {
   try {
     console.log("REQ BODY:", req.body);
@@ -20,11 +20,9 @@ export const PostSignup = async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: "Email already registered." });
 
-    // Create user with plain password; pre-save hook will hash it automatically
     const newUser = new User({ name, email, Password });
     await newUser.save();
 
-    // Send welcome email
     if (transporter) {
       const mailOptions = {
         from: process.env.Email_USER,
@@ -50,7 +48,7 @@ export const PostSignup = async (req, res) => {
   }
 };
 
-// ==================== LOGIN ====================
+
 export const PostLogin = async (req, res) => {
   try {
     const email = req.body.email?.toLowerCase().trim();
@@ -59,7 +57,6 @@ export const PostLogin = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Invalid Email or Password" });
 
-    // Use schema method to compare password
     const isMatch = await user.comparePassword(Password);
     if (!isMatch) return res.status(400).json({ message: "Invalid Email or Password" });
 
@@ -87,10 +84,4 @@ export const getDashboard = async (req, res) => {
 };
 
 
-export const Logout = (req, res) => {
-  req.session.destroy(err => {
-    if (err) return res.status(500).json({ message: "Logout failed" });
-    res.clearCookie('connect.sid');
-    res.status(200).json({ message: "Logged out successfully" });
-  });
-};
+
