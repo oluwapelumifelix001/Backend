@@ -50,18 +50,18 @@
 </head>
 
 <body>
-    <form id="signupForm" action="/signup" method="POST">
+    <form id="signupForm" action="/user/signup" method="POST">
         <h2>Signup</h2>
 
-        <% if (typeof error !=='undefined' && error) { %>
+        <% if (typeof error !==  'undefined' && error) { %>
             <div class="error">
                 <%= error %>
             </div>
             <% } %>
 
-                <input type="text" name="Name" placeholder="Full Name" required />
-                <input type="email" name="Email" placeholder="Email" required />
-                <input type="password" name="Password" placeholder="Password" required />
+                <input type="text" name="Name" placeholder="Full Name" required autocomplete="name" />
+                <input type="email" name="Email" placeholder="Email" required autocomplete="email" />
+                <input type="password" name="Password" placeholder="Password" required autocomplete="new-password" />
 
                 <button type="submit">Register</button>
                 <p>Already have an account? <a href="/Login">Login</a></p>
@@ -82,10 +82,9 @@
 
                 if (response.redirected) {
                     window.location.href = response.url;
-                } else {
-                    document.querySelector('.error')?.remove();
-                    const text = await response.text();
-                    console.log(text);
+                }
+                else {
+                    console.log("error");
                 }
             });
         })();

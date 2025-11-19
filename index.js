@@ -1,118 +1,90 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import bcrypt from 'bcrypt';
-import ejs from 'ejs';
 import { fileURLToPath } from 'url';
 import path from 'path';
-const app = express();
+import nodemailer from 'nodemailer';
+import userRoutes from './routes/user.routes.js';
+import usermodels from './models/user.models.js';
+import cors from 'cors';
+import session from 'express-session';
+
 dotenv.config();
-
-
+const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-app.set('views', path.join(__dirname, 'views'));
-app.use(express.static(path.join(__dirname, 'public')));
-app.set("view engine", "ejs")
 
+const MONGO_URI = process.env.MONGO_URI;
+const PORT = process.env.PORT || 3000;
+const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_PASS = process.env.EMAIL_PASS;
 
-
-const MONGO_URI = process.env.MONGO_URI ;
-const PORT = process.env.PORT 
+if (!MONGO_URI) {
+	console.error('Missing MONGO_URI in environment. Set it in your .env file.');
+	process.exit(1);
+}
+if (!EMAIL_USER || !EMAIL_PASS) {
+	console.warn('EMAIL_USER or EMAIL_PASS not set. Nodemailer will not be able to send emails until these are configured.');
+}
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+app.use(cors({
+	origin: 'http://localhost:5173',
+	methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+	credentials: true
+}));
 
-const UserSchema = new mongoose.Schema({
-    Name: {
-        type: String,
-        required: [true, "Name is required"]
-    },
-    Email: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    Password: {
-        type: String,
-        required: true,
-        
-    }
-}
-)
-const User = mongoose.model("User", UserSchema)
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'public')));
+app.set("view engine", "ejs");
+
+app.use(session({
+	secret: process.env.SESSION_SECRET || 'your_secret_key', // move secret to .env
+	resave: false,
+	saveUninitialized: false, // prevents empty sessions
+	cookie: {
+		secure: false,   // true only if using HTTPS
+		httpOnly: true,  // prevents JS access to cookie
+		sameSite: 'lax'
+	}
+}));
 
 
 
-console.log("MONGO_URI from .env:");
+app.use('/user', userRoutes);
+
+console.log("MONGO_URI from .env:", MONGO_URI);
+
+let transporter;
 mongoose.connect(MONGO_URI)
-    .then(() => {
-        console.log("connected  to mongodb")
-    })
-    .catch((err) => {
-        console.log("err" + err)
-    })
+	.then( async() => {
+		console.log("Connected to MongoDB");
+		if (EMAIL_USER && EMAIL_PASS) {
+			transporter = nodemailer.createTransport({
+				host: 'smtp.gmail.com',
+				port: 587,
+				secure: false,
+				auth: {
+					user: EMAIL_USER,
+					pass: EMAIL_PASS,
+				},
+				tls: {
+					rejectUnauthorized: false
+				}
+			});
 
+			transporter.verify()
+				.then(() => console.log('Nodemailer connection verified'))
+				.catch(err => console.error('Nodemailer verification failed:', err));
+		}
 
-app.get("/musicApi", (req, res) => {
-    res.send(musicApi)
-})
+		app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+	})
+	.catch((err) => {
+		console.error("Failed to connect to MongoDB:", err);
+		process.exit(1);
+	});
 
-app.get("/Signup", (req, res) => {
-    res.render("Signup")
-})
-app.post('/signup', async (req, res) => {
-    try {
-        const { Name, Email, Password } = req.body;
-        const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-        if (!passwordRegex.test(Password)) {
-            return res.render("Signup", { error: "Password must include uppercase, lowercase, number, special character, and be at least 8 characters long." });
-        }
-
-        const existingUser = await User.findOne({ Email });
-        if (existingUser) {
-            return res.render("Signup", { error: "Email already registered." });
-        }
-        const hashedPassword = await bcrypt.hash(Password, 10);
-        const newUser = new User({ Name, Email, Password: hashedPassword });
-        await newUser.save();
-
-        console.log("User saved:", newUser);
-        res.redirect("/Login");
-    } catch (error) {
-        console.error("Error during signup:", error);
-        res.render("Signup", { error: "Something went wrong, please try again." });
-    }
-});
-
-app.get('/Login', (req, res) => {
-    res.render("Login")
-})
-app.get('/dashboard', (req, res) => {
-    res.render("dashboard")
-})
-app.post("/Login", async (req, res) => {
-    try {
-        const { Email, Password } = req.body;
-        const Check = await User.findOne({ Email })
-
-        if (!Check) {
-            return res.render("Login",{ error: "Invalid Email" })
-        }
-        const validPassword = await bcrypt.compare(Password, Check.Password)
-        if (!validPassword) {
-            console.log('Invalid Password')
-            return res.render("Login", { error: "Invalid Password" });
-        }
-        res.redirect("dashboard")
-
-    }
-    catch (error) {
-        console.error("Login error:", error);
-        console.error("Login error:", error);
-        return res.render("Login", { error: "Something went wrong" });
-    }
-})
-
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+export { transporter };
