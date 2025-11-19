@@ -1,5 +1,5 @@
 import express from 'express';
-import { PostSignup, PostLogin, getDashboard, Logout } from '../controllers/user.controllers.js';
+import { PostSignup, PostLogin, getDashboard} from '../controllers/user.controllers.js';
 
 
 const router = express.Router();
@@ -13,7 +13,7 @@ router.post('/login', PostLogin);
 
 
 router.get('/dashboard', getDashboard);
-router.get('/logout', Logout);
+
 
 export default router;
 
