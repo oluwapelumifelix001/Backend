@@ -31,12 +31,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use(cors({
-	origin: 'http://localhost:5173',
+	origin: 'levelthreefrontend.vercel.app',
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
 	credentials: true
 }));
 
-app.set('views', path.join(__dirname, 'views'));	
+app.set('views', path.join(__dirname, 'views'));
 
 app.use(session({
 	secret: process.env.SESSION_SECRET || 'your_secret_key', // move secret to .env
@@ -57,7 +57,7 @@ console.log("MONGO_URI from .env:", MONGO_URI);
 
 let transporter;
 mongoose.connect(MONGO_URI)
-	.then( async() => {
+	.then(async () => {
 		console.log("Connected to MongoDB");
 		if (EMAIL_USER && EMAIL_PASS) {
 			transporter = nodemailer.createTransport({
