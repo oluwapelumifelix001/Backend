@@ -31,7 +31,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use(cors({
-	origin: 'levelthreefrontend.vercel.app',
+	origin: 'https://levelthreefrontend.vercel.app',
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
 	credentials: true
 }));

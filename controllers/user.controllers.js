@@ -67,7 +67,6 @@ export const PostLogin = async (req, res) => {
 
     req.session.userId = user._id;
     res.status(200).json({ message: "Login successful",token, user: { name: user.name, email: user.email } });
-
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Something went wrong, please try again." });
